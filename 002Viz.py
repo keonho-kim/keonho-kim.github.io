@@ -173,4 +173,7 @@ fig.update_layout(
 
 fig.write_html(img_path+'\\'+today+'.html')
 
+#전일 파일 삭제
+os.remove(img_path + '\\' + previous + '.html')
+
 print("Process Complete")
