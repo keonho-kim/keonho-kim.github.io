@@ -1,17 +1,37 @@
-import os
 import re
+import os
 import numpy as np
+from datetime import datetime, timedelta
 import pandas as pd
+import time
 
-import FinanceDataReader as fdr
-from pykrx import stock
+try:
+    import FinanceDataReader as fdr
+    from pykrx import stock
+except:
+    os.system('pip install finance-datareader')
+    os.system('pip install pykrx')
+    import FinanceDataReader as fdr
+    from pykrx import stock
 
-import plotly.express as px
+try:
+    import plotly.graph_objects as go
+    import plotly.express as px
+    from plotly.subplots import make_subplots
+except:
+    os.system('pip install plotly')
+    import plotly.graph_objects as go
+    import plotly.express as px
+    from plotly.subplots import make_subplots
+    
+# pandas copy error 끄기
+pd.set_option('mode.chained_assignment',  None)
+pd.options.display.float_format = '{:.2f}'.format
 
 # 파일 경로 설정
 path = os.getcwd()
-clas_path = path +'\Classification'
-img_path = path +'\images'
+clas_path = path +'\\Classification\\'
+img_path = path +'\\images\\'
 
 # 날짜 설정
 print("입력예시: 2020-01-01")
@@ -135,12 +155,18 @@ for idx, row in kospi_info.iterrows():
         row['sqrtMarCap'] = np.sqrt(int(mcap))
         row['Status'] = 'Suspend'
 
+
 kospi_info['Market'] = 'KOSPI'
 kospi_info['Open'] = kospi_info['Open'].astype(float)
 kospi_info['Close'] = kospi_info['Close'].astype(float)
 kospi_info['Change'] = kospi_info['Change'].astype(float)
 kospi_info['MarCap'] = kospi_info['MarCap'].astype(float)
 kospi_info['sqrtMarCap'] = kospi_info['sqrtMarCap'].astype(float)
+
+print("------------------")
+print("Start Creating Map")
+print("------------------")
+
 
 fig = px.treemap(
     kospi_info,
@@ -164,16 +190,275 @@ fig.update_traces(
 
 fig.update_layout(
     autosize = False,
-    width = 1280,
-    height = 720,
+    width = 1366,
+    height = 728,
     margin = dict(l=0, r=0, t=0, b=0),
     coloraxis_showscale = False
 )
 
+#전일 파일 삭제
+try:
+    os.remove(img_path + "Map_" + previous + '.html')
+except:
+    pass
 
-fig.write_html(img_path+'\\'+today+'.html')
+# 파일 저장
+fig.write_html(img_path + "Map_" + today +'.html')
+
+
+
+print("------------------")
+print("Complete Creating Map")
+print("------------------")
+
+# Create Dict.
+tiger_dict = {'277630': 'Tiger 코스피',
+ '102110': 'Tiger 200',
+ '139260': 'Tiger 200 IT',
+ '139220': 'Tiger 200 건설',
+ '139290': 'Tiger 200 경기소비재',
+ '227550': 'Tiger 200 산업재',
+ '157490': 'Tiger 소프트웨어',
+ '315270': 'Tiger 200 커뮤니케이션서비스',
+ '091230': 'Tiger 반도체',
+ '139250': 'Tiger 200 에너지화학',
+ '091220': 'Tiger 은행',
+ '139270': 'Tiger 200 금융',
+ '157500': 'Tiger 증권',
+ '139240': 'Tiger 200 철강소재',
+ '139230': 'Tiger 200 중공업',
+ '227560': 'Tiger 200 생활소비재'}
+
+tiger = [val for key, val in tiger_dict.items()]
+
+# 3개월 전 날짜 구하기
+previous = pd.to_datetime(today)
+previous = previous + timedelta(weeks=-12)
+previous = str(previous)[0:10].replace('-', '')
+
+etf = pd.DataFrame(columns = tiger)
+
+# 각 인덱스 가격 구하기
+for key, val in tiger_dict.items():
+    ticker = key
+    p = stock.get_etf_ohlcv_by_date(fromdate=previous, todate=today, ticker=key)
+    etf[val] = p['종가']
+    
+
+# Gap 구하기
+
+idx = list(tiger[:2])
+sectors = list(tiger[2:])
+
+idx_mean = etf[idx].mean(axis=1)
+idx_return = (idx_mean / idx_mean.iloc[0] - 1.0) * 100
+
+sector = etf[sectors]
+sector_returns = (sector / sector.iloc[0] - 1.0) * 100
+
+gap = sector_returns
+gap['시장수익률'] = idx_return
+
+# 인덱스 날짜별로 설정
+gap = gap.reset_index()
+gap['날짜'] = pd.to_datetime(gap['날짜'])
+
+print("------------------")
+print("Start Creating Line Chart")
+print("------------------")
+
+# 선 그래프
+
+fig = make_subplots(
+    rows = 14,
+    cols = 1,
+    vertical_spacing = 0.015,
+    y_title = '수익률',
+    subplot_titles =(sectors)
+)
+
+r = 1
+for i in range(len(sectors)):
+    sec = sectors[i]
+    cols = [sec].extend(['날짜', 'MA5', 'MA20', '시장수익률'])
+    df = pd.DataFrame(columns = cols)
+    
+    df[sec] = None
+    df[sec] = gap[sec]
+    
+    df['날짜'] = None
+    df['날짜'] = gap['날짜']
+    df['날짜'] = pd.to_datetime(df['날짜'])
+    df = df.set_index(df['날짜'])
+    
+    df['MA5'] = None
+    df['MA5'] = df[sec].rolling(window=5).mean()
+    df['MA20'] = None
+    df['MA20'] = df[sec].rolling(window=20).mean()
+    
+    df['시장수익률'] = None
+    df['시장수익률'] = idx_return
+
+    df = df.dropna()
+
+    fig.add_trace(
+        go.Scatter(
+            x = df['날짜'],
+            y = df['시장수익률'],
+            name = f'시장수익률',
+            marker_color = 'Red'
+        ),
+        row = r,
+        col = 1)
+    
+    fig.add_trace(
+        go.Scatter(
+            x = df['날짜'],
+            y = df[sec],
+            name = f'섹터 수익률',
+            marker_color = 'white'
+        ),
+        row = r,
+        col = 1)
+    
+    fig.add_trace(
+        go.Scatter(
+            x = df['날짜'],
+            y = df['MA5'],
+            name = f'MA5',
+            marker_color = 'Blue'
+        ),
+        row = r,
+        col = 1)
+    
+    fig.add_trace(
+        go.Scatter(
+            x = df['날짜'],
+            y = df['MA20'],
+            name = f'MA20',
+            marker_color = 'Green'
+        ),
+        row = r,
+        col = 1)
+   
+    r += 1
+fig.update_yaxes(dtick=5)
+fig.update_xaxes(showgrid=False)
+
+fig.update_layout(
+    title = {
+        'text':"3개월 시장수익률, 섹터수익률, 섹터 이동평균(5, 20)",
+        'xanchor':'center',
+        'yanchor':'top',
+        'x':0.5,
+        'y':0.995
+    },
+    width = 1366, 
+    height = 6000, 
+    hovermode = 'x unified',
+    showlegend=False, 
+    template = 'plotly_dark')
 
 #전일 파일 삭제
-os.remove(img_path + '\\' + previous + '.html')
+try:
+    os.remove(img_path + "Line_" + previous + '.html')
+except:
+    pass
 
-print("Process Complete")
+# 파일 저장
+fig.write_html(img_path + "Line_" + today +'.html')
+
+
+print("------------------")
+print("Complete Creating Line Chart")
+print("------------------")
+
+
+print("------------------")
+print("Complete Creating Bar Chart")
+print("------------------")
+
+# 막대 그래프
+# 데이터 프레임
+result = pd.DataFrame(gap.iloc[-1, 1:])
+result = result - result.iloc[-1]
+result = result.iloc[0:-1]
+result.columns = ['상대수익률']
+result = result.sort_values(by=['상대수익률'])
+
+# 색깔 
+
+result['type'] = None
+
+for idx, row in result.iterrows():
+    if row['상대수익률'] < 0:
+        row['type'] = 'Underperform'
+    else:
+        row['type'] = 'Outperform'
+
+# 플롯
+
+fig = px.bar(
+    result, x = result.index, 
+    y = '상대수익률',
+    color='type',
+    template='plotly_dark'
+    )
+
+fig.update_traces(
+    marker_line_width= 0.2,
+    hovertemplate = '<b>%{label}</b><br><br><b>상대수익률: %{y:.2f}%</b>',
+    hoverlabel = dict(font=(dict(color='white')))
+    )
+
+fig.update_traces(
+    texttemplate='%{y:.2f}', 
+    textposition='outside', 
+    textfont_size=11)
+
+fig.add_shape(
+    type='line',
+    x0=-0.5,
+    x1=13.5,
+    y0=0,
+    y1=0,
+    line=dict(color='White',dash='dot',),
+    )
+
+fig.update_xaxes(
+    tickangle = 70,
+    tickfont = dict(size=12)
+)
+
+fig.update_layout(
+    title = {
+        'text':"코스피 & 코스피200 평균 대비 섹터 퍼포먼스 (3개월)",
+        'xanchor':'center',
+        'yanchor':'top',
+        'x':0.5,
+    },
+    xaxis = {
+        'title' : ''
+    },
+    legend = {
+        'title' : 'Type'
+    },
+    autosize = True,
+    width = 1366,
+    height = 728
+)
+
+#전일 파일 삭제
+try:
+    os.remove(img_path + "Bar_" + previous + '.html')
+except:
+    pass
+
+# 파일 저장
+fig.write_html(img_path + "Bar_" + today +'.html')
+
+
+
+print("------------------")
+print("Complete Creating Bar Chart")
+print("------------------")

@@ -1,11 +1,36 @@
 <!DOCTYPE html>
 <html>
-<style>
-    html, body{
-        height:100%;
-    }
-</style>
-<body>
-    <embed type="text/html" src="images/20210113.html", width = "2000", height="2000">
-</body>
+    <style>
+        *{padding: 0px; margin: 0px;}
+
+        html, body{
+            width: 99.6%;
+            height:99.6%;
+            background-color: black;
+            border-style: hidden;
+            margin: 0 auto;
+            }   
+        
+        .map{
+            position: relative;
+            text-align: center;
+            margin-left: auto; margin-right: auto;
+            border-style: hidden;
+        }
+
+        hr {
+            text-align: center;
+        }
+    </style>
+    <head>
+        <meta charset="utf-8">
+        <title>MAP</title>
+    </head>
+
+    <body>
+        <div class="map">
+            <iframe align="center" type="html" src="images/Map_20210113.html" width = "1510" height="750" scrolling="no" frameborder="0" allowfullscreen=""></iframe>
+        </div>
+    </body>
+
 </html>
