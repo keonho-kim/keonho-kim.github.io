@@ -196,14 +196,8 @@ fig.update_layout(
     coloraxis_showscale = False
 )
 
-#전일 파일 삭제
-try:
-    os.remove(img_path + "Map_" + previous + '.html')
-except:
-    pass
-
 # 파일 저장
-fig.write_html(img_path + "Map_" + today +'.html')
+fig.write_html(img_path + "Map.html")
 
 
 
@@ -359,14 +353,8 @@ fig.update_layout(
     showlegend=False, 
     template = 'plotly_dark')
 
-#전일 파일 삭제
-try:
-    os.remove(img_path + "Line_" + previous + '.html')
-except:
-    pass
-
 # 파일 저장
-fig.write_html(img_path + "Line_" + today +'.html')
+fig.write_html(img_path + "Line.html")
 
 
 print("------------------")
@@ -448,14 +436,9 @@ fig.update_layout(
     height = 728
 )
 
-#전일 파일 삭제
-try:
-    os.remove(img_path + "Bar_" + previous + '.html')
-except:
-    pass
 
 # 파일 저장
-fig.write_html(img_path + "Bar_" + today +'.html')
+fig.write_html(img_path + "Bar.html")
 
 
 
