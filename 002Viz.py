@@ -197,7 +197,7 @@ fig.update_layout(
 )
 
 # 파일 저장
-fig.write_html(img_path + "Map.html")
+fig.write_html(img_path + "Map_" + today + ".html")
 
 
 
@@ -354,7 +354,7 @@ fig.update_layout(
     template = 'plotly_dark')
 
 # 파일 저장
-fig.write_html(img_path + "Line.html")
+fig.write_html(img_path + "Line_" + today +".html")
 
 
 print("------------------")
@@ -438,7 +438,7 @@ fig.update_layout(
 
 
 # 파일 저장
-fig.write_html(img_path + "Bar.html")
+fig.write_html(img_path + "Bar_" + today + ".html")
 
 
 
