@@ -35,8 +35,8 @@ img_path = path +'\\images\\'
 
 # 날짜 설정
 print("입력예시: 2020-01-01")
-previous = input("이전 거래일을 입력하세요: ").replace('-', '')
-today = input("오늘 날짜를 입력하세요: ").replace('-', '')
+previous = str(input("이전 거래일을 입력하세요: ").replace('-', ''))
+today = str(input("오늘 날짜를 입력하세요: ").replace('-', ''))
 
 # 표준산업분류 불러오기
 classification = pd.read_csv(clas_path +'\classification.csv', usecols=['L1','L2','L3'])
@@ -47,6 +47,7 @@ kospi_list = fdr.StockListing('KOSPI')
 kospi_list = kospi_list.dropna(axis=0).reset_index(drop=True)
     # 코스피 종목 정보 추리기
 kospi_info= pd.DataFrame(kospi_list, columns = ['Symbol', 'Name', 'Sector'])
+
 
 # 상위 산업 추가하기
 
@@ -86,36 +87,46 @@ kospi_info = kospi_info.rename(columns={'Symbol':'Ticker', 'Sector': 'L3'})
 kospi_ohlcv_pre = stock.get_market_ohlcv_by_ticker(previous, "KOSPI").reset_index(drop=False)
 kospi_ohlcv_pre = kospi_ohlcv_pre.rename(
     columns = {
-        '종목코드':'Ticker',
+        '티커':'Ticker',
         '종목명':'Name',
         '시가': 'Open',
         '고가': 'High',
         '저가': 'Low',
         '종가': 'Close',
         '거래량': 'Volume',
-        '거래대금': 'Transaction Volume',
-        '시가총액': 'Market Cap',
-        '시총비중': 'Weight',
-        '상장주식수': 'Share Outstanding'
+        '거래대금': 'Transaction Volume'
          }
     )
 
 kospi_ohlcv_today = stock.get_market_ohlcv_by_ticker(today, "KOSPI").reset_index(drop=False)
 kospi_ohlcv_today = kospi_ohlcv_today.rename(
     columns = {
-        '종목코드':'Ticker',
+        '티커':'Ticker',
         '종목명':'Name',
         '시가': 'Open',
         '고가': 'High',
         '저가': 'Low',
         '종가': 'Close',
         '거래량': 'Volume',
+        '거래대금': 'Transaction Volume'
+         }
+    )
+
+
+market_cap = stock.get_market_cap_by_ticker(today, "KOSPI").reset_index(drop=False)
+
+market_cap = market_cap.rename(
+    columns = {
+        '티커':'Ticker',
+        '종가': 'Close',
+        '거래량': 'Volume',
         '거래대금': 'Transaction Volume',
         '시가총액': 'Market Cap',
-        '시총비중': 'Weight',
         '상장주식수': 'Share Outstanding'
          }
     )
+
+
 
 # 코스피 데이터 병합
 kospi_info['Open'] = None
@@ -129,7 +140,7 @@ for idx, row in kospi_info.iterrows():
     ticker = row['Ticker']
     
     stock_ohlcv_today = kospi_ohlcv_today[kospi_ohlcv_today['Ticker'] == ticker]
-
+    mcap = market_cap[market_cap["Ticker"] == ticker]['Market Cap'].iloc[0]
     if stock_ohlcv_today['Open'].iloc[0] != 0: # 거래정지가 아닌 경우
         row['Open'] = stock_ohlcv_today['Open'].iloc[0]
         row['Close'] = stock_ohlcv_today['Close'].iloc[0]
@@ -142,7 +153,7 @@ for idx, row in kospi_info.iterrows():
         pch = round((row['Close'] - pre_close) / pre_close * 100, 2)
         row['Change'] = pch
 
-        mcap = str(stock_ohlcv_today['Market Cap'].iloc[0])[:-8]
+        
         row['MarCap'] = int(mcap)
         row['sqrtMarCap'] = np.sqrt(int(mcap))
         row['Status'] = 'Active'
@@ -150,7 +161,7 @@ for idx, row in kospi_info.iterrows():
         row['Open'] = stock_ohlcv_today['Close'].iloc[0]
         row['Close'] = stock_ohlcv_today['Close'].iloc[0]
         row['Change'] = 0
-        mcap = str(stock_ohlcv_today['Market Cap'].iloc[0])[:-8]
+        
         row['MarCap'] = int(mcap)
         row['sqrtMarCap'] = np.sqrt(int(mcap))
         row['Status'] = 'Suspend'
@@ -205,6 +216,7 @@ print("------------------")
 print("Complete Creating Map")
 print("------------------")
 
+"""
 # Create Dict.
 tiger_dict = {'277630': 'Tiger 코스피',
  '102110': 'Tiger 200',
@@ -445,3 +457,4 @@ fig.write_html(img_path + "Bar_" + today + ".html")
 print("------------------")
 print("Complete Creating Bar Chart")
 print("------------------")
+"""
