@@ -1,37 +1,141 @@
 <!DOCTYPE html>
-<html>
-    <style>
-        *{padding: 0px; margin: 0px;}
+<html lang="utf-8">
 
-        html, body{
-            width: 99.6%;
-            height:99.6%;
-            background-color: black;
-            border-style: hidden;
-            margin: 0 auto;
-            }   
-        
-        .map{
-            position: relative;
-            text-align: center;
-            margin-left: auto; margin-right: auto;
-            border-style: hidden;
-            margin: 0 auto;
-        }
+<head>
 
-        hr {
-            text-align: center;
-        }
-    </style>
-    <head>
-        <meta charset="utf-8">
-        <title>MAP</title>
-    </head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-    <body>
-        <div class="map">
-            <iframe align="center" type="html" src="images/Map_20210122.html" width = "1510" height="750" scrolling="no" frameborder="0" allowfullscreen=""></iframe>
+  <title>Market, Visually</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="css/scrolling-nav.css" rel="stylesheet">
+
+</head>
+
+<body id="page-top">
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+    <div class="container">
+      <a class="navbar-brand js-scroll-trigger" href="#page-top">Market, Visually</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="#about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="#services">일간 KOSPI 지도</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="#contact">일간 KOSDAQ 지도</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <header class="bg-primary text-white">
+    <div class="container text-center">
+      <h1>Market, Visually</h1>
+      <p class="lead">
+        오늘은 코스피가 어떻게 흘러갔는지 한 눈으로 확인하세요! <br>
+        매일 저녁 업데이트 됩니다.
+      </p>
+    </div>
+  </header>
+
+  <section id="about">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <h2>About</h2>
+          <p class="lead">
+            <br>
+            <b>코스피가 올랐다, 내렸다.<br><br>
+            <em>"그래서 뭐가 어떻게 됐는데?"</em> <br><br>
+            요약 뉴스도 이해가 안 갑니다. <br><br>
+            그래서, 한눈에 보이게 만들었습니다.</b> <br><br>
+          </p>
+          <ul>
+            <li>본 웹페이지는 수익을 창출하지 않습니다</li> <br>
+            <li>데스크탑 환경을 권장합니다.</li> <br>
+            <li>모든 지도는 마우스 클릭으로 상호작용이 가능합니다.</li> <br>
+            <li>공유하실 때는 출처를 남겨주세요.</li> <br>
+            <li>상업적인 용도로 사용하시면 안됩니다.</li>
+          </ul>
+          <img src="front.jpg">
         </div>
-    </body>
+      </div>
+    </div>
+  </section>
+
+  <section id="services" class="bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <h2>일간 KOSPI 지도</h2>
+          <p class="desc">
+            <li>마우스 클릭으로 세부 섹터의 종목들을 확인하실 수 있습니다.</li>
+            <li>로딩에 시간이 조금 걸립니다.</li><br>
+            <p class="Color"">
+              <font style="color:red">&nbsp&nbsp<em>빨강 - 상승</em></font><br>
+              <font style="color:rgb(43, 43, 43)">&nbsp&nbsp<em>회색 - 보합</em></font><br>
+              <font style="color: blue; text-indent:2em">&nbsp&nbsp<em>파랑 - 하락</em></font><br>
+            </p>
+            </p>
+            <p class="lead" style="text-indent:1em">
+              <b>COMMENT</b> <br>
+              <p style="text-indent: 2em;">
+                실적 장세의 시작일지, 아니면 숨고르기일지..
+              </p>
+            </p>
+          </div>
+        </div>
+        <iframe id="map" scrolling="no" style="border:none;" seamless="seamless" src="images/Map_20210122.html" height="660" width="1300"></iframe>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <h2>일간 코스닥 지도</h2>
+          <p class="lead">추후 업데이트 될 예정입니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-5 bg-dark">
+    <div class="container">
+      <p class="m-0 text-center text-white">
+        Copyright &copy; Market, Visually 2020<br>
+        Contact. MarketAndVisually@gmail.com<br>
+      </p>
+    </div>
+    <!-- /.container -->
+  </footer>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Plugin JavaScript -->
+  <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+  <!-- Custom JavaScript for this theme -->
+  <script src="js/scrolling-nav.js"></script>
+
+</body>
 
 </html>

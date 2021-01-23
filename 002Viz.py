@@ -201,13 +201,17 @@ fig.update_traces(
 
 fig.update_layout(
     autosize = False,
-    width = 1366,
-    height = 728,
+    width = 1152,
+    height = 640,
     margin = dict(l=0, r=0, t=0, b=0),
     coloraxis_showscale = False
 )
 
 # 파일 저장
+try:
+    os.remove(img_path + "Map_" + previous + '.html')
+except:
+    pass
 fig.write_html(img_path + "Map_" + today + ".html")
 
 
