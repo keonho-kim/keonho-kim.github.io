@@ -41,6 +41,10 @@ today = str(input("오늘 날짜를 입력하세요: ").replace('-', ''))
 # 표준산업분류 불러오기
 classification = pd.read_csv(clas_path +'\classification.csv', usecols=['L1','L2','L3'])
 
+print("------------------")
+print("Collecting Data")
+print("------------------")
+
 # 코스피 종목 정보 불러오기
 kospi_list = fdr.StockListing('KOSPI')
     # 우선주, 투자신탁 제거
@@ -126,7 +130,9 @@ market_cap = market_cap.rename(
          }
     )
 
-
+print("------------------")
+print("Processing Data")
+print("------------------")
 
 # 코스피 데이터 병합
 kospi_info['Open'] = None
@@ -201,7 +207,7 @@ fig.update_traces(
 
 fig.update_layout(
     autosize = False,
-    width = 1152,
+    width = 1080,
     height = 640,
     margin = dict(l=0, r=0, t=0, b=0),
     coloraxis_showscale = False
