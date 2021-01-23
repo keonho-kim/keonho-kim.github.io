@@ -194,15 +194,15 @@ fig = px.treemap(
     color_continuous_midpoint = 0,
     range_color = [-3,3],
     branchvalues = 'total',
-    custom_data = ['Change'],
+    custom_data = ['Change', 'Close', 'Pr_Change'],
     maxdepth=5
 )
 
 fig.update_traces(
     textposition = 'middle center',
     marker_line_width= 0.2,
-    hovertemplate = '<b>%{label}</b><br><br>전일대비 증감율: %{color:.2f}%',
-    texttemplate = '<b>%{label}</b><br><br>%{customdata[0]:.2f}%'
+    hovertemplate = '<b>%{label}</b><br><br>종가: %{customdata[1]:,}<br>가격 변동:%{customdata[2]:,}<br>전일대비 증감율: %{color:.2f}%',
+    texttemplate = '%{label}<br><br>%{customdata[0]:.2f}%'
     )
 
 fig.update_layout(
