@@ -201,7 +201,7 @@ fig = px.treemap(
 fig.update_traces(
     textposition = 'middle center',
     marker_line_width= 0.2,
-    hovertemplate = '<b>%{label}</b><br><br>종가: %{customdata[1]:,}<br>가격 변동:%{customdata[2]:,}<br>전일대비 증감율: %{color:.2f}%',
+    hovertemplate = '<b>%{label}</b>',
     texttemplate = '%{label}<br><br>%{customdata[0]:.2f}%'
     )
 
