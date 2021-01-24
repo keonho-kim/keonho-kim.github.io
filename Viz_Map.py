@@ -131,7 +131,7 @@ market_cap = market_cap.rename(
     )
 
 print("------------------")
-print("Processing Data")
+print("Processing KOSPI Data")
 print("------------------")
 
 # 코스피 데이터 병합
@@ -181,7 +181,7 @@ kospi_info['MarCap'] = kospi_info['MarCap'].astype(float)
 kospi_info['sqrtMarCap'] = kospi_info['sqrtMarCap'].astype(float)
 
 print("------------------")
-print("Start Creating Map")
+print("Start Creating KOSPI Map")
 print("------------------")
 
 
@@ -215,11 +215,198 @@ fig.update_layout(
 
 # 파일 저장
 try:
-    os.remove(img_path + "Map_" + previous + '.html')
+    os.remove(img_path + "Map_KOSPI_" + previous + '.html')
 except:
     pass
-fig.write_html(img_path + "Map_" + today + ".html")
+fig.write_html(img_path + "Map_KOSPI_" + today + ".html")
 
+
+# 코스피 종목 정보 불러오기
+kosdaq_list = fdr.StockListing('KOSDAQ')
+    # 우선주, 투자신탁 제거
+kosdaq_list = kosdaq_list.dropna(axis=0).reset_index(drop=True)
+    # 코스피 종목 정보 추리기
+kosdaq_info= pd.DataFrame(kosdaq_list, columns = ['Symbol', 'Name', 'Sector'])
+
+
+# 상위 산업 추가하기
+
+# 띄워쓰기가 다른 경우가 있음 -> 띄워쓰기 전부 제거
+# 특수 문자 모두 제거
+
+# 코스피 상위 산업 추가하기
+
+print("------------------")
+print("Processing KOSDAQ Data")
+print("------------------")
+
+
+kosdaq_info['L2'] = None
+kosdaq_info['L1'] = None
+
+for idx, row in kosdaq_info.iterrows():
+    
+    sector = row['Sector'].replace(' ', '') # 코스피의 섹터도 동일하게 띄워쓰기 제거
+    sector = re.sub('[-=+,#/·\?:^$.@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'…》]', '', sector) # 모든 특수문자 제거
+
+    L1 = list(classification[classification['L3'] == sector]['L1'])
+    L2 = list(classification[classification['L3']== sector]['L2'])
+    
+    if len(L1) > 0:
+        kosdaq_info['L1'][idx] = L1[0]
+        kosdaq_info['L2'][idx] = L2[0]
+    else:
+        print(sector)
+
+# 컬럼명 바꾸기
+kosdaq_info = kosdaq_info.rename(columns={'Symbol':'Ticker', 'Sector': 'L3'})
+
+kosdaq_ohlcv_pre = stock.get_market_ohlcv_by_ticker(previous, "KOSDAQ").reset_index(drop=False)
+kosdaq_ohlcv_pre = kosdaq_ohlcv_pre.rename(
+    columns = {
+        '티커':'Ticker',
+        '종목명':'Name',
+        '시가': 'Open',
+        '고가': 'High',
+        '저가': 'Low',
+        '종가': 'Close',
+        '거래량': 'Volume',
+        '거래대금': 'Transaction Volume'
+         }
+    )
+
+kosdaq_ohlcv_today = stock.get_market_ohlcv_by_ticker(today, "KOSDAQ").reset_index(drop=False)
+kosdaq_ohlcv_today = kosdaq_ohlcv_today.rename(
+    columns = {
+        '티커':'Ticker',
+        '종목명':'Name',
+        '시가': 'Open',
+        '고가': 'High',
+        '저가': 'Low',
+        '종가': 'Close',
+        '거래량': 'Volume',
+        '거래대금': 'Transaction Volume'
+         }
+    )
+
+
+market_cap_pre = stock.get_market_cap_by_ticker(previous, "KOSDAQ").reset_index(drop=False)
+
+market_cap_pre = market_cap_pre.rename(
+    columns = {
+        '티커':'Ticker',
+        '종가': 'Close',
+        '거래량': 'Volume',
+        '거래대금': 'Transaction Volume',
+        '시가총액': 'Market Cap',
+        '상장주식수': 'Share Outstanding'
+         }
+    )
+
+
+market_cap_today = stock.get_market_cap_by_ticker(today, "KOSDAQ").reset_index(drop=False)
+
+market_cap_today = market_cap_today.rename(
+    columns = {
+        '티커':'Ticker',
+        '종가': 'Close',
+        '거래량': 'Volume',
+        '거래대금': 'Transaction Volume',
+        '시가총액': 'Market Cap',
+        '상장주식수': 'Share Outstanding'
+         }
+    )
+
+
+# 코스피 데이터 병합
+kosdaq_info['Open'] = None
+kosdaq_info['Close'] = None
+kosdaq_info['Pr_Change'] = None
+kosdaq_info['Change'] = None
+kosdaq_info['MarCap_pre'] = None
+kosdaq_info['MarCap_today'] = None
+kosdaq_info['sqrtMarCap'] = None
+kosdaq_info['Status'] = None
+
+for idx, row in kosdaq_info.iterrows():
+    ticker = row['Ticker']
+    
+    stock_ohlcv_today = kosdaq_ohlcv_today[kosdaq_ohlcv_today['Ticker'] == ticker]
+
+    mcap_td = market_cap_today[market_cap_today["Ticker"] == ticker]['Market Cap'].iloc[0]  
+    row['MarCap_today'] = int(mcap_td)
+
+    mcap_pr = market_cap_pre[market_cap_pre["Ticker"] == ticker]['Market Cap'].iloc[0] 
+    row['MarCap_pre'] = int(mcap_pr)
+       
+    if stock_ohlcv_today['Open'].iloc[0] != 0: # 거래정지가 아닌 경우
+        row['Open'] = stock_ohlcv_today['Open'].iloc[0]
+        row['Close'] = stock_ohlcv_today['Close'].iloc[0]
+        
+        # 전일 대비 가격 변동
+        pre_close = kosdaq_ohlcv_pre[kosdaq_ohlcv_pre['Ticker'] == ticker]['Close'].iloc[0]
+        ch = row['Close'] - pre_close
+        row['Pr_Change'] = ch
+        pch = round((row['Close'] - pre_close) / pre_close * 100, 2)
+        row['Change'] = pch
+        
+        row['sqrtMarCap'] = np.sqrt(int(mcap_td))
+        row['Status'] = 'Active'
+
+    else: # 거래정지
+        row['Open'] = stock_ohlcv_today['Close'].iloc[0]
+        row['Close'] = stock_ohlcv_today['Close'].iloc[0]
+        row['Change'] = 0
+        
+        row['sqrtMarCap'] = np.sqrt(int(mcap_td))
+        row['Status'] = 'Suspend'
+
+kosdaq_info['Market'] = 'KOSDAQ'
+kosdaq_info['Open'] = kosdaq_info['Open'].astype(float)
+kosdaq_info['Close'] = kosdaq_info['Close'].astype(float)
+kosdaq_info['Change'] = kosdaq_info['Change'].astype(float)
+kosdaq_info['MarCap_pre'] = kosdaq_info['MarCap_pre'].astype(float)
+kosdaq_info['MarCap_today'] = kosdaq_info['MarCap_today'].astype(float)
+kosdaq_info['sqrtMarCap'] = kosdaq_info['sqrtMarCap'].astype(float)
+
+
+print("------------------")
+print("Start Creating KOSDAQ Map")
+print("------------------")
+
+fig = px.treemap(
+    kosdaq_info,
+    path = ['Market','L1', 'L2', 'Name'],
+    values = 'sqrtMarCap',
+    color = 'Change',
+    color_continuous_scale= [[0, '#14029e'], [0.5, '#424242'], [1, '#8c0618']],
+    color_continuous_midpoint = 0,
+    range_color = [-3,3],
+    branchvalues = 'total',
+    custom_data = ['Change'],
+    maxdepth=5
+)
+
+fig.update_traces(
+    textposition = 'middle center',
+    marker_line_width= 0.2,
+    hovertemplate = '<b>%{label}</b>',
+    texttemplate = '%{label}<br><br>%{customdata[0]:.2f}%'
+    )
+
+fig.update_layout(
+    autosize = False,
+    width = 1080,
+    height = 640,
+    margin = dict(l=0, r=0, t=0, b=0),
+    coloraxis_showscale = False
+)
+
+try:
+    os.remove(img_path + "Map_KOSDAQ_" + previous + '.html')
+except:
+    pass
+fig.write_html(img_path + "Map_KOSDAQ_" + today + ".html")
 
 
 print("------------------")
