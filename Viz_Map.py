@@ -142,35 +142,42 @@ kospi_info['Change'] = None
 kospi_info['MarCap'] = None
 kospi_info['sqrtMarCap'] = None
 kospi_info['Status'] = None
+
 for idx, row in kospi_info.iterrows():
     ticker = row['Ticker']
     
     stock_ohlcv_today = kospi_ohlcv_today[kospi_ohlcv_today['Ticker'] == ticker]
     mcap = market_cap[market_cap["Ticker"] == ticker]['Market Cap'].iloc[0]
-    if stock_ohlcv_today['Open'].iloc[0] != 0: # 거래정지가 아닌 경우
-        row['Open'] = stock_ohlcv_today['Open'].iloc[0]
-        row['Close'] = stock_ohlcv_today['Close'].iloc[0]
-        
-        # 전일 대비 가격 변동
-        pre_close = kospi_ohlcv_pre[kospi_ohlcv_pre['Ticker'] == ticker]['Close'].iloc[0]
-        
-        ch = row['Close'] - pre_close
-        row['Pr_Change'] = ch
-        pch = round((row['Close'] - pre_close) / pre_close * 100, 2)
-        row['Change'] = pch
+    
+    try: # 신규상장이 아닌 경우
 
-        
-        row['MarCap'] = int(mcap)
-        row['sqrtMarCap'] = np.sqrt(int(mcap))
-        row['Status'] = 'Active'
-    else: # 거래정지
-        row['Open'] = stock_ohlcv_today['Close'].iloc[0]
-        row['Close'] = stock_ohlcv_today['Close'].iloc[0]
-        row['Change'] = 0
-        
-        row['MarCap'] = int(mcap)
-        row['sqrtMarCap'] = np.sqrt(int(mcap))
-        row['Status'] = 'Suspend'
+        if stock_ohlcv_today['Open'].iloc[0] != 0: # 거래정지가 아닌 경우
+            row['Open'] = stock_ohlcv_today['Open'].iloc[0]
+            row['Close'] = stock_ohlcv_today['Close'].iloc[0]
+            
+            # 전일 대비 가격 변동
+            pre_close = kospi_ohlcv_pre[kospi_ohlcv_pre['Ticker'] == ticker]['Close'].iloc[0]
+            
+            ch = row['Close'] - pre_close
+            row['Pr_Change'] = ch
+            pch = round((row['Close'] - pre_close) / pre_close * 100, 2)
+            row['Change'] = pch
+
+            
+            row['MarCap'] = int(mcap)
+            row['sqrtMarCap'] = np.sqrt(int(mcap))
+            row['Status'] = 'Active'
+        else: # 거래정지
+            row['Open'] = stock_ohlcv_today['Close'].iloc[0]
+            row['Close'] = stock_ohlcv_today['Close'].iloc[0]
+            row['Change'] = 0
+            
+            row['MarCap'] = int(mcap)
+            row['sqrtMarCap'] = np.sqrt(int(mcap))
+            row['Status'] = 'Suspend'
+
+    except: #신규상장인 경우 오늘 가격 변동 반영 X
+        pass 
 
 
 kospi_info['Market'] = 'KOSPI'
@@ -179,6 +186,7 @@ kospi_info['Close'] = kospi_info['Close'].astype(float)
 kospi_info['Change'] = kospi_info['Change'].astype(float)
 kospi_info['MarCap'] = kospi_info['MarCap'].astype(float)
 kospi_info['sqrtMarCap'] = kospi_info['sqrtMarCap'].astype(float)
+kospi_info = kospi_info.dropna()
 
 print("------------------")
 print("Start Creating KOSPI Map")
@@ -221,7 +229,7 @@ except:
 fig.write_html(img_path + "Map_KOSPI_" + today + ".html")
 
 
-# 코스피 종목 정보 불러오기
+# 코스닥 종목 정보 불러오기
 kosdaq_list = fdr.StockListing('KOSDAQ')
     # 우선주, 투자신탁 제거
 kosdaq_list = kosdaq_list.dropna(axis=0).reset_index(drop=True)
@@ -234,7 +242,7 @@ kosdaq_info= pd.DataFrame(kosdaq_list, columns = ['Symbol', 'Name', 'Sector'])
 # 띄워쓰기가 다른 경우가 있음 -> 띄워쓰기 전부 제거
 # 특수 문자 모두 제거
 
-# 코스피 상위 산업 추가하기
+# 코스닥 상위 산업 추가하기
 
 print("------------------")
 print("Processing KOSDAQ Data")
@@ -333,33 +341,36 @@ for idx, row in kosdaq_info.iterrows():
     
     stock_ohlcv_today = kosdaq_ohlcv_today[kosdaq_ohlcv_today['Ticker'] == ticker]
 
-    mcap_td = market_cap_today[market_cap_today["Ticker"] == ticker]['Market Cap'].iloc[0]  
-    row['MarCap_today'] = int(mcap_td)
+    try: # 신규상장이 아닌 경우
+        mcap_td = market_cap_today[market_cap_today["Ticker"] == ticker]['Market Cap'].iloc[0]  
+        row['MarCap_today'] = int(mcap_td)
 
-    mcap_pr = market_cap_pre[market_cap_pre["Ticker"] == ticker]['Market Cap'].iloc[0] 
-    row['MarCap_pre'] = int(mcap_pr)
-       
-    if stock_ohlcv_today['Open'].iloc[0] != 0: # 거래정지가 아닌 경우
-        row['Open'] = stock_ohlcv_today['Open'].iloc[0]
-        row['Close'] = stock_ohlcv_today['Close'].iloc[0]
-        
-        # 전일 대비 가격 변동
-        pre_close = kosdaq_ohlcv_pre[kosdaq_ohlcv_pre['Ticker'] == ticker]['Close'].iloc[0]
-        ch = row['Close'] - pre_close
-        row['Pr_Change'] = ch
-        pch = round((row['Close'] - pre_close) / pre_close * 100, 2)
-        row['Change'] = pch
-        
-        row['sqrtMarCap'] = np.sqrt(int(mcap_td))
-        row['Status'] = 'Active'
+        mcap_pr = market_cap_pre[market_cap_pre["Ticker"] == ticker]['Market Cap'].iloc[0] 
+        row['MarCap_pre'] = int(mcap_pr)
 
-    else: # 거래정지
-        row['Open'] = stock_ohlcv_today['Close'].iloc[0]
-        row['Close'] = stock_ohlcv_today['Close'].iloc[0]
-        row['Change'] = 0
-        
-        row['sqrtMarCap'] = np.sqrt(int(mcap_td))
-        row['Status'] = 'Suspend'
+        if stock_ohlcv_today['Open'].iloc[0] != 0: # 거래정지가 아닌 경우
+            row['Open'] = stock_ohlcv_today['Open'].iloc[0]
+            row['Close'] = stock_ohlcv_today['Close'].iloc[0]
+            
+            # 전일 대비 가격 변동
+            pre_close = kosdaq_ohlcv_pre[kosdaq_ohlcv_pre['Ticker'] == ticker]['Close'].iloc[0]
+            ch = row['Close'] - pre_close
+            row['Pr_Change'] = ch
+            pch = round((row['Close'] - pre_close) / pre_close * 100, 2)
+            row['Change'] = pch
+            
+            row['sqrtMarCap'] = np.sqrt(int(mcap_td))
+            row['Status'] = 'Active'
+
+        else: # 거래정지
+            row['Open'] = stock_ohlcv_today['Close'].iloc[0]
+            row['Close'] = stock_ohlcv_today['Close'].iloc[0]
+            row['Change'] = 0
+            
+            row['sqrtMarCap'] = np.sqrt(int(mcap_td))
+            row['Status'] = 'Suspend'
+    except: # 신규상장인 경우 제외
+        pass 
 
 kosdaq_info['Market'] = 'KOSDAQ'
 kosdaq_info['Open'] = kosdaq_info['Open'].astype(float)
@@ -368,7 +379,7 @@ kosdaq_info['Change'] = kosdaq_info['Change'].astype(float)
 kosdaq_info['MarCap_pre'] = kosdaq_info['MarCap_pre'].astype(float)
 kosdaq_info['MarCap_today'] = kosdaq_info['MarCap_today'].astype(float)
 kosdaq_info['sqrtMarCap'] = kosdaq_info['sqrtMarCap'].astype(float)
-
+kosdaq_info = kosdaq_info.dropna()
 
 print("------------------")
 print("Start Creating KOSDAQ Map")
