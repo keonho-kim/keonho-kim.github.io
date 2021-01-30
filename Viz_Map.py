@@ -34,9 +34,9 @@ clas_path = path +'\\Classification\\'
 img_path = path +'\\images\\'
 
 # 날짜 설정
-print("입력예시: 2020-01-01")
-previous = str(input("이전 거래일을 입력하세요: ").replace('-', ''))
-today = str(input("오늘 날짜를 입력하세요: ").replace('-', ''))
+print("input example: 2020-01-01")
+previous = str(input("Enter Previous Trasnaction Date: ").replace('-', ''))
+today = str(input("Enter Recent Transaction Date: ").replace('-', ''))
 
 # 표준산업분류 불러오기
 classification = pd.read_csv(clas_path +'\classification.csv', usecols=['L1','L2','L3'])
