@@ -223,10 +223,10 @@ fig.update_layout(
 
 # 파일 저장
 try:
-    os.remove(img_path + "Map_KOSPI" + '.html')
+    os.remove(img_path + "Map_KOSPI_" + previous  + '.html')
 except:
     pass
-fig.write_html(img_path + "Map_KOSPI" + ".html")
+fig.write_html(img_path + "Map_KOSPI_" + today  + ".html")
 
 
 # 코스닥 종목 정보 불러오기
@@ -414,10 +414,10 @@ fig.update_layout(
 )
 
 try:
-    os.remove(img_path + "Map_KOSDAQ" + '.html')
+    os.remove(img_path + "Map_KOSDAQ_" + previous + '.html')
 except:
     pass
-fig.write_html(img_path + "Map_KOSDAQ" + ".html")
+fig.write_html(img_path + "Map_KOSDAQ_" + today + ".html")
 
 
 print("------------------")
