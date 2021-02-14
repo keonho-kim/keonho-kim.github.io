@@ -1,3 +1,4 @@
+# coding: utf-8
 import re
 import os
 import numpy as np
@@ -24,56 +25,48 @@ except:
     import plotly.express as px
     from plotly.subplots import make_subplots
     
-# pandas copy error 끄기
+# turn of pandas error
 pd.set_option('mode.chained_assignment',  None)
 pd.options.display.float_format = '{:.2f}'.format
 
-# 파일 경로 설정
+# set file path
 path = os.getcwd()
-clas_path = path +'\\Classification\\'
-img_path = path +'\\images\\'
+clas_path = path +'/Classification/'
+img_path = path +'/images/'
 
-# 날짜 설정
+# set date
 print("input example: 2020-01-01")
 previous = str(input("Enter Previous Trasnaction Date: ").replace('-', ''))
 today = str(input("Enter Recent Transaction Date: ").replace('-', ''))
 
-# 표준산업분류 불러오기
-classification = pd.read_csv(clas_path +'\classification.csv', usecols=['L1','L2','L3'])
+# read classification file
+classification = pd.read_csv(clas_path +'/classification.csv', usecols=['L1','L2','L3'])
 
 print("------------------")
 print("Collecting Data")
 print("------------------")
 
-# 코스피 종목 정보 불러오기
 kospi_list = fdr.StockListing('KOSPI')
-    # 우선주, 투자신탁 제거
 kospi_list = kospi_list.dropna(axis=0).reset_index(drop=True)
-    # 코스피 종목 정보 추리기
 kospi_info= pd.DataFrame(kospi_list, columns = ['Symbol', 'Name', 'Sector'])
 
 
-# 상위 산업 추가하기
-
-# 띄워쓰기가 다른 경우가 있음 -> 띄워쓰기 전부 제거
-# 특수 문자 모두 제거
 
 for idx, row in classification.iterrows():
     no_space = row['L3'].replace(' ', '')
     row['L3'] = no_space
 
-    no_specials = re.sub('[-=+,#/\?:^$.@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'…》]', '', row['L3'])
+    no_specials = re.sub('[-=+,#/\?:^$.@*\"~&%ㆍ!\\‘|\(\)\[\]\<\>`\'…]', '', row['L3'])
     row['L3'] = no_specials
 
-# 코스피 상위 산업 추가하기
 
 kospi_info['L2'] = None
 kospi_info['L1'] = None
 
 for idx, row in kospi_info.iterrows():
-    
-    sector = row['Sector'].replace(' ', '') # 코스피의 섹터도 동일하게 띄워쓰기 제거
-    sector = re.sub('[-=+,#/·\?:^$.@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'…》]', '', sector) # 모든 특수문자 제거
+    # eliminate specials 
+    sector = row['Sector'].replace(' ', '') 
+    sector = re.sub('[-=+,#/·\?:^$.@*\"※~&%ㆍ!』\\‘|\(\)\[\]\<\>`\'…》]', '', sector) 
 
     L1 = list(classification[classification['L3'] == sector]['L1'])
     L2 = list(classification[classification['L3']== sector]['L2'])
@@ -84,7 +77,7 @@ for idx, row in kospi_info.iterrows():
     else:
         print(sector)
 
-# 컬럼명 바꾸기
+# change column names
 
 kospi_info = kospi_info.rename(columns={'Symbol':'Ticker', 'Sector': 'L3'})
 
@@ -134,7 +127,7 @@ print("------------------")
 print("Processing KOSPI Data")
 print("------------------")
 
-# 코스피 데이터 병합
+# incoporate kospi data
 kospi_info['Open'] = None
 kospi_info['Close'] = None
 kospi_info['Pr_Change'] = None
@@ -149,13 +142,13 @@ for idx, row in kospi_info.iterrows():
     stock_ohlcv_today = kospi_ohlcv_today[kospi_ohlcv_today['Ticker'] == ticker]
     mcap = market_cap[market_cap["Ticker"] == ticker]['Market Cap'].iloc[0]
     
-    try: # 신규상장이 아닌 경우
+    try: # if a compnay is not a new listed
 
-        if stock_ohlcv_today['Open'].iloc[0] != 0: # 거래정지가 아닌 경우
+        if stock_ohlcv_today['Open'].iloc[0] != 0: # if not transaction stopped case
             row['Open'] = stock_ohlcv_today['Open'].iloc[0]
             row['Close'] = stock_ohlcv_today['Close'].iloc[0]
             
-            # 전일 대비 가격 변동
+			# get daily return
             pre_close = kospi_ohlcv_pre[kospi_ohlcv_pre['Ticker'] == ticker]['Close'].iloc[0]
             
             ch = row['Close'] - pre_close
@@ -167,7 +160,7 @@ for idx, row in kospi_info.iterrows():
             row['MarCap'] = int(mcap)
             row['sqrtMarCap'] = np.sqrt(int(mcap))
             row['Status'] = 'Active'
-        else: # 거래정지
+        else: # transaction stopped
             row['Open'] = stock_ohlcv_today['Close'].iloc[0]
             row['Close'] = stock_ohlcv_today['Close'].iloc[0]
             row['Change'] = 0
@@ -176,7 +169,7 @@ for idx, row in kospi_info.iterrows():
             row['sqrtMarCap'] = np.sqrt(int(mcap))
             row['Status'] = 'Suspend'
 
-    except: #신규상장인 경우 오늘 가격 변동 반영 X
+    except: # newly listed company is not included 
         pass 
 
 
@@ -221,7 +214,7 @@ fig.update_layout(
     coloraxis_showscale = False
 )
 
-# 파일 저장
+# save file
 try:
     os.remove(img_path + "Map_KOSPI_" + previous  + '.html')
 except:
@@ -229,20 +222,13 @@ except:
 fig.write_html(img_path + "Map_KOSPI_" + today  + ".html")
 
 
-# 코스닥 종목 정보 불러오기
+# get kosdaq list
 kosdaq_list = fdr.StockListing('KOSDAQ')
-    # 우선주, 투자신탁 제거
+# remove preffered and irrelavant equities
 kosdaq_list = kosdaq_list.dropna(axis=0).reset_index(drop=True)
-    # 코스피 종목 정보 추리기
 kosdaq_info= pd.DataFrame(kosdaq_list, columns = ['Symbol', 'Name', 'Sector'])
 
 
-# 상위 산업 추가하기
-
-# 띄워쓰기가 다른 경우가 있음 -> 띄워쓰기 전부 제거
-# 특수 문자 모두 제거
-
-# 코스닥 상위 산업 추가하기
 
 print("------------------")
 print("Processing KOSDAQ Data")
@@ -266,7 +252,6 @@ for idx, row in kosdaq_info.iterrows():
     else:
         print(sector)
 
-# 컬럼명 바꾸기
 kosdaq_info = kosdaq_info.rename(columns={'Symbol':'Ticker', 'Sector': 'L3'})
 
 kosdaq_ohlcv_pre = stock.get_market_ohlcv_by_ticker(previous, "KOSDAQ").reset_index(drop=False)
@@ -326,7 +311,6 @@ market_cap_today = market_cap_today.rename(
     )
 
 
-# 코스피 데이터 병합
 kosdaq_info['Open'] = None
 kosdaq_info['Close'] = None
 kosdaq_info['Pr_Change'] = None
@@ -341,18 +325,17 @@ for idx, row in kosdaq_info.iterrows():
     
     stock_ohlcv_today = kosdaq_ohlcv_today[kosdaq_ohlcv_today['Ticker'] == ticker]
 
-    try: # 신규상장이 아닌 경우
+    try: 
         mcap_td = market_cap_today[market_cap_today["Ticker"] == ticker]['Market Cap'].iloc[0]  
         row['MarCap_today'] = int(mcap_td)
 
         mcap_pr = market_cap_pre[market_cap_pre["Ticker"] == ticker]['Market Cap'].iloc[0] 
         row['MarCap_pre'] = int(mcap_pr)
 
-        if stock_ohlcv_today['Open'].iloc[0] != 0: # 거래정지가 아닌 경우
+        if stock_ohlcv_today['Open'].iloc[0] != 0: 
             row['Open'] = stock_ohlcv_today['Open'].iloc[0]
             row['Close'] = stock_ohlcv_today['Close'].iloc[0]
             
-            # 전일 대비 가격 변동
             pre_close = kosdaq_ohlcv_pre[kosdaq_ohlcv_pre['Ticker'] == ticker]['Close'].iloc[0]
             ch = row['Close'] - pre_close
             row['Pr_Change'] = ch
@@ -362,14 +345,14 @@ for idx, row in kosdaq_info.iterrows():
             row['sqrtMarCap'] = np.sqrt(int(mcap_td))
             row['Status'] = 'Active'
 
-        else: # 거래정지
+        else: 
             row['Open'] = stock_ohlcv_today['Close'].iloc[0]
             row['Close'] = stock_ohlcv_today['Close'].iloc[0]
             row['Change'] = 0
             
             row['sqrtMarCap'] = np.sqrt(int(mcap_td))
             row['Status'] = 'Suspend'
-    except: # 신규상장인 경우 제외
+    except: 
         pass 
 
 kosdaq_info['Market'] = 'KOSDAQ'
