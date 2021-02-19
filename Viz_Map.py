@@ -30,8 +30,8 @@ pd.options.display.float_format = '{:.2f}'.format
 
 # 파일 경로 설정
 path = os.getcwd()
-clas_path = path +'\\Classification\\'
-img_path = path +'\\images\\'
+clas_path = path +'/Classification/'
+img_path = path +'/images/'
 
 # 날짜 설정
 print("input example: 2020-01-01")
@@ -39,7 +39,7 @@ previous = str(input("Enter Previous Trasnaction Date: ").replace('-', ''))
 today = str(input("Enter Recent Transaction Date: ").replace('-', ''))
 
 # 표준산업분류 불러오기
-classification = pd.read_csv(clas_path +'\classification.csv', usecols=['L1','L2','L3'])
+classification = pd.read_csv(clas_path +'/classification.csv', usecols=['L1','L2','L3'])
 
 print("------------------")
 print("Collecting Data")
