@@ -39,11 +39,7 @@ print("input example: 2020-01-01")
 previous = str(input("Enter Previous Trasnaction Date: ").replace('-', ''))
 today = str(input("Enter Recent Transaction Date: ").replace('-', ''))
 
-<<<<<<< HEAD
 # 표준산업분류 불러오기
-=======
-# read classification file
->>>>>>> 789c67e70872d7d357abb6f617413fa25cb10cdf
 classification = pd.read_csv(clas_path +'/classification.csv', usecols=['L1','L2','L3'])
 
 print("------------------")
